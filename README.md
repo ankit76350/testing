@@ -1,117 +1,82 @@
-# Jest Test Cases for Null, Zero, Number, and Array Values
+# Jest Test Cases
 
-This repository contains Jest test cases that demonstrate how JavaScript handles different types of values using Jest matchers. These tests help in understanding comparisons, truthy/falsy values, and array matchers.
+This file contains Jest test cases that demonstrate error handling and function mocking using Jest.
 
-## Prerequisites
-Make sure you have Jest installed before running the tests:
+## Table of Contents
+- [Exceptional Error Handling Test](#exceptional-error-handling-test)
+- [Mock Function Test](#mock-function-test)
 
-```sh
-npm install --save-dev jest
-```
-
-## Running the Tests
-To run the tests, execute the following command:
-
-```sh
-npm test
-```
-
-## Test Case 1: Checking `null` Value
+## Exceptional Error Handling Test
 
 ```javascript
-test("Null Value", async () => {
-  const value = null;
-  expect(value).toBeNull();         // ✅ Passes: value is explicitly null
-  expect(value).toBeDefined();      // ✅ Passes: value is defined (not undefined)
-  expect(value).not.toBeUndefined();// ✅ Passes: value is not undefined
-  expect(value).not.toBeTruthy();   // ✅ Passes: null is considered a falsy value
-  expect(value).toBeFalsy();        // ✅ Passes: null is falsy
-});
+ test("Exceptional Error",()=>{
+  function openInvalidFile(){
+    throw new Error("file not found");
+  }
+
+  expect(()=>openInvalidFile()).toThrow(); // Checks if the function throws an error
+  expect(()=>openInvalidFile()).toThrow(Error); // Checks if the thrown error is an instance of `Error`
+  expect(()=>openInvalidFile()).toThrow("file not found"); // Checks if the error message matches exactly
+  expect(()=>openInvalidFile()).toThrow(/not found/); // Uses regex to check if the error message contains "not found"
+
+  // Uncommenting these lines would fail because the function does throw an error
+  // expect(()=>openInvalidFile()).not.toThrow();
+  // expect(()=>openInvalidFile()).not.toThrow(Error);
+  // expect(()=>openInvalidFile()).not.toThrow("file not found");
+  // expect(()=>openInvalidFile()).not.toThrow(/not found/);
+ })
 ```
 
-### Failing Case:
+### Explanation:
+- The `openInvalidFile` function throws an error with the message "file not found".
+- The Jest `expect().toThrow()` method ensures that an error is indeed thrown.
+- Different variations of `toThrow()` are used:
+  - Checking if any error is thrown.
+  - Checking if an `Error` type is thrown.
+  - Checking for an exact error message.
+  - Using regex to match error messages dynamically.
+
+## Mock Function Test
+
 ```javascript
-expect(value).toBeTruthy();  // ❌ Fails because null is falsy
+ test("Drinks return",()=>{
+    const drink = jest.fn(()=>true); // Mock function returning true
+    // const drink = jest.fn(()=>false); // Alternative: returning false
+    // const drink = jest.fn(()=>{}); // Alternative: returning an empty object
+    
+    drink();
+    
+    expect(drink).toHaveReturned(); // Checks if the function has returned any value
+    expect(drink).toHaveReturnedWith(true); // Checks if the function specifically returned true
+    expect(drink).toHaveReturnedWith(false); // This will fail unless the function returns false
+    expect(drink).toHaveReturnedWith({}); // This will fail unless the function returns an empty object
+ })
 ```
+
+### Explanation:
+- `jest.fn()` is used to create a mock function.
+- The mock function can return different values based on setup (true, false, empty object, etc.).
+- `drink()` is called to execute the function.
+- Various Jest matchers are used to verify function return values:
+  - `.toHaveReturned()`: Checks if the function returned anything.
+  - `.toHaveReturnedWith(value)`: Checks if the function returned a specific value.
+
+## Jest Global Keywords
+Jest provides global methods for writing test cases without requiring explicit imports in every file. 
+Some important global keywords used in this file:
+- `expect()`: Assertion method to check test conditions.
+- `jest.fn()`: Creates mock functions for testing.
+- `.toThrow()`: Checks if a function throws an error.
+- `.toHaveReturned()`: Checks if a function returned any value.
 
 ---
+### What is Mocking?
+Mocking is a technique used in testing where a function's actual implementation is replaced with a simulated version. This helps isolate functions and test behavior without executing the real code.
 
-## Test Case 2: Checking `0` (Zero) Value
-
+Example:
 ```javascript
-test("Zero Value", async () => {
-  const value = 0;
-  expect(value).not.toBeNull();     // ✅ Passes: 0 is not null
-  expect(value).toBeDefined();      // ✅ Passes: 0 is defined
-  expect(value).not.toBeUndefined();// ✅ Passes: 0 is not undefined
-  expect(value).not.toBeTruthy();   // ✅ Passes: 0 is falsy
-  expect(value).toBeFalsy();        // ✅ Passes: 0 is a falsy value
-});
+const sum = (a, b) => a + b;
+expect(sum(2,2)).toBe(4); // This is a real function test (not a mock)
 ```
 
-### Failing Case:
-```javascript
-expect(value).toBeTruthy();  // ❌ Fails because 0 is falsy
-```
-
----
-
-## Test Case 3: Number Comparisons
-
-```javascript
-test("Number Comparison", async () => {
-  const value = 3 + 3;
-  expect(value).toBeGreaterThan(5);        // ✅ Passes: 6 > 5
-  expect(value).toBeGreaterThanOrEqual(5); // ✅ Passes: 6 >= 5
-  expect(value).toBeLessThan(7);           // ✅ Passes: 6 < 7
-  expect(value).toBeLessThanOrEqual(6);    // ✅ Passes: 6 <= 6
-  expect(value).toBe(6);                   // ✅ Passes: 6 === 6
-  expect(value).toEqual(6);                // ✅ Passes: 6 == 6
-
-  const floatValue = 0.2 + 0.1;
-  expect(floatValue).toBeCloseTo(0.3, 5);  // ✅ Passes: 0.2 + 0.1 ≈ 0.3 (floating-point precision)
-});
-```
-
-### Failing Cases:
-```javascript
-expect(floatValue).toBe(0.3);  // ❌ Fails due to floating-point precision issues
-expect("Developer").not.toMatch(/e/); // ❌ Fails because "Developer" contains 'e'
-```
-
----
-
-## Test Case 4: Array Matchers
-
-```javascript
-test("Array Matchers", () => {
-  const todoList = ["Love", "Death", "and", "Robot", "Coding"];
-  expect(todoList).toContain("Death");  // ✅ Passes: "Death" exists in the array
-});
-
-test.only("Array Matchers", () => {
-  const todoList = ["Love", "Death", "and", "Robot", "Coding"];
-  expect(todoList).toContain("Death");  // ✅ Passes: "Death" exists in the array
-});
-```
-
-### Failing Case:
-```javascript
-expect(todoList).toContain("Life");  // ❌ Fails because "Life" is not in the array
-```
-
----
-
-## Summary
-- **`null`** is explicitly `null`, falsy, and defined.
-- **`0`** is not `null`, but it is still falsy.
-- **Number matchers help compare values correctly, including floating-point calculations.**
-- **String matchers validate patterns inside text.**
-- **Array matchers check if specific elements exist in an array.**
-- **Floating-point arithmetic can cause unexpected failures in strict equality tests.**
-
-These test cases ensure that your application correctly differentiates between different values and behaviors.
-
-## License
-This project is open-source and available under the [MIT License](LICENSE).
-
+In contrast, `jest.fn()` is used to create a mock function that mimics behavior without actual implementation.

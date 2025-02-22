@@ -1,41 +1,32 @@
 
-test("Number Compariosn", async()=>{
-const value = 3+3;
-expect(value).toBeGreaterThan(5)
-expect(value).toBeGreaterThanOrEqual(5)
-expect(value).toBeLessThan(7)
-expect(value).toBeLessThanOrEqual(6)
-expect(value).toBe(6)
-expect(value).toEqual(6)
+test("Exceptional Error",()=>{
+  function openInvalidFile(){
+    throw new Error("file not found");
+  }
 
-const floatValue = 0.2 + 0.1;
-expect(floatValue).toBeCloseTo(0.3 , 5);
-// expect(floatValue).toBeCloseTo(0.356 , 5); // Fail
+  expect(()=>openInvalidFile()).toThrow()
+  expect(()=>openInvalidFile()).toThrow(Error)
+  expect(()=>openInvalidFile()).toThrow("file not found")
+  expect(()=>openInvalidFile()).toThrow(/not found/) // regex
 
-expect("Developer").not.toMatch(/I/); 
-// expect("Developeri").not.toMatch(/i/); // fail 
-expect("Developer").toMatch(/Dev/);
+//   expect(()=>openInvalidFile()).not.toThrow()
+//   expect(()=>openInvalidFile()).not.toThrow(Error)
+//   expect(()=>openInvalidFile()).not.toThrow("file not found")
+//   expect(()=>openInvalidFile()).not.toThrow(/not found/) // regex
 })
 
 
-test("Array Matchers",()=>{
-    const todoList = [
-        "Love",
-        "Death",
-        "and",
-        "Robot",
-        "Coding"
-    ]
-    expect(todoList).toContain("Death")
-})
+//here jest global keyword which is come from the jest
+//what does mocking? (2+2==4 true)
 
-test.only("Array Matchers",()=>{
-    const todoList = [
-        "Love",
-        "Death",
-        "and",
-        "Robot",
-        "Coding"
-    ]
-    expect(todoList).toContain("Death")
+
+test("Drinks return",()=>{
+    const drink = jest.fn(()=>true)
+    // const drink = jest.fn(()=>false)
+    // const drink = jest.fn(()=>{})
+    drink();
+    expect(drink).toHaveReturned()
+    expect(drink).toHaveReturnedWith(true)
+    expect(drink).toHaveReturnedWith(false)
+    expect(drink).toHaveReturnedWith({})
 })
