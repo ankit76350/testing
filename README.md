@@ -1,131 +1,135 @@
-# Project: Jest Mocking Example
 
-## Overview
-This project demonstrates how to use Jest for unit testing with function mocking. The main focus is testing the `calculate` function in `app.js` while mocking the `add` function from `mathUtils.js`. The project structure consists of the following files:
+```md
+# 🕵️‍♂️ Jest Spy - Testing Function Calls
 
-- **mathUtils.js**: Contains basic arithmetic functions.
-- **app.js**: Implements the `calculate` function, which performs arithmetic operations.
-- **index.test.js**: Contains Jest test cases for the `calculate` function.
-- **__mocks__/mathUtils.js**: Provides a mocked version of the `add` function for testing.
+This repository demonstrates how to use `jest.spyOn()` to track function calls in JavaScript. It ensures that a specific function is called within a module using Jest.
 
 ---
 
-## File Explanations
+## 📂 Project Structure
 
-### 1. `mathUtils.js`
-This file defines four mathematical operations: addition, subtraction, multiplication, and division.
-
-```js
-// Function to add two numbers
-function add(num1, num2) {
-    return num1 + num2;
-}
-
-// Function to multiply two numbers
-function multiply(num1, num2) {
-    return num1 * num2;
-}
-
-// Function to subtract two numbers
-function subtract(num1, num2) {
-    return num1 - num2;
-}
-
-// Function to divide two numbers
-function divide(num1, num2) {
-    return num2 !== 0 ? num1 / num2 : "Cannot divide by zero";
-}
-
-module.exports = { add, multiply, subtract, divide };
 ```
-
-### 2. `app.js`
-This file implements the `calculate` function, which takes two numbers and an operation type as input and performs the respective arithmetic operation.
-
-```js
-const { add, multiply, subtract, divide } = require("./mathUtils");
-
-function calculate(num1, num2, operation) {
-    switch (operation) {
-        case "add":
-            return add(num1, num2);
-        case "multiply":
-            return multiply(num1, num2);
-        case "subtract":
-            return subtract(num1, num2);
-        case "divide":
-            return divide(num1, num2);
-        default:
-            return new Error("Invalid operation");
-    }
-}
-
-module.exports = { calculate };
+/project-root
+│── spy.js            # Module containing the function to be tested
+│── index.test.js     # Jest test file for spying on function calls
+│── package.json      # Dependencies & scripts (Jest setup)
 ```
-
-### 3. `__mocks__/mathUtils.js`
-This file provides a mocked version of the `add` function using Jest.
-
-```js
-const add = jest.fn((a, b) => a + b);
-module.exports = { add };
-```
-
-- `jest.fn((a, b) => a + b)`: This creates a mock function that simulates the behavior of `add`, but allows Jest to track calls and arguments.
-
-### 4. `index.test.js`
-This file contains Jest test cases for the `calculate` function. Initially, the tests failed because the `add` function was not mocked. After creating the `__mocks__` folder and providing a mocked version of `add`, the tests pass successfully.
-
-#### Before Mocking (Tests Failed)
-```js
-const { calculate } = require("./app");
-const { add } = require("./mathUtils");
-
-describe("calculate", () => {
-    test('calls add function with parameter', () => {
-        calculate(1, 2, "add");
-        expect(add).toHaveBeenCalled();  // fails
-        expect(add).toHaveBeenCalledWith(1, 2); // fails
-    });
-});
-```
-- The test failed because Jest could not track calls to the original `add` function.
-
-#### After Mocking (Tests Pass)
-```js
-jest.mock("./mathUtils");
-const { calculate } = require("./app");
-const { add } = require("./mathUtils");
-
-describe("calculate", () => {
-    test('calls add function with parameter', () => {
-        calculate(1, 2, "add");
-        expect(add).toHaveBeenCalled();  // pass
-        expect(add).toHaveBeenCalledWith(1, 2); // pass
-    });
-});
-```
-
-- `jest.mock("./mathUtils")`: This tells Jest to use the mocked version of `mathUtils.js` from the `__mocks__` folder.
-- `expect(add).toHaveBeenCalled()`: Verifies that `add` was called.
-- `expect(add).toHaveBeenCalledWith(1, 2)`: Ensures `add` was called with the correct arguments.
 
 ---
 
-## Running the Tests
-To execute the test cases, run the following command:
+## 🚀 Getting Started
+
+### 📌 1. Install Jest
+
+If you haven't installed Jest yet, run:
+
+```sh
+npm install --save-dev jest
+```
+
+---
+
+## 📂 File Explanations
+
+### 1️⃣ **spy.js** (Module to be tested)
+
+This file defines a simple function `myFunction` that prints `"Org fn"` to the console.
+
+```javascript
+// spy.js
+function myFunction() {
+    console.log("Org fn");  // Original function that we will spy on
+}
+
+module.exports = { myFunction };
+```
+
+- The function `myFunction`:
+  - Logs `"Org fn"` to the console when called.
+  - Does **not** return any value.
+  - Will be spied on in the test to check if it's called.
+
+---
+
+### 2️⃣ **index.test.js** (Jest Test File)
+
+This file contains the **Jest test case** to spy on the function call.
+
+```javascript
+// index.test.js
+const myModule = require("./spy");  // Import the module
+
+test("Should spy on function and check if it is called", () => {
+  const spy = jest.spyOn(myModule, "myFunction"); // Create a spy on myFunction
+
+  myModule.myFunction();  // Call the function
+
+  expect(spy).toHaveBeenCalled();  // Verify if the function was called
+
+  spy.mockRestore();  // Restore original function implementation
+});
+```
+
+#### 🔍 **How the test works:**
+1. **`jest.spyOn(myModule, "myFunction")`**  
+   - Creates a spy on `myFunction` from `myModule`.
+   - Tracks if `myFunction` gets called.
+
+2. **`myModule.myFunction();`**  
+   - Calls the actual function.
+
+3. **`expect(spy).toHaveBeenCalled();`**  
+   - Verifies if `myFunction` was called at least once.
+
+4. **`spy.mockRestore();`**  
+   - Restores the original function, ensuring the spy does not affect other tests.
+
+---
+
+## ▶️ Running the Test
+
+Run Jest with:
+
+```sh
+npx jest
+```
+or
 
 ```sh
 npm test
 ```
 
-or
+---
+
+## 🛠 Expected Output
+
+If everything is working correctly, the test will pass:
 
 ```sh
-jest
+PASS  ./index.test.js
+✓ Should spy on function and check if it is called (Xms)
 ```
+
+If the function was **not called**, Jest will throw an error.
 
 ---
 
-## Conclusion
-This project demonstrates how Jest can be used to test function calls using mocks. By creating a `__mocks__` folder and using `jest.mock()`, we were able to successfully track function calls and validate expected behaviors.
+## 🎯 Key Takeaways
+
+- `jest.spyOn()` allows us to track if a function is being called.
+- `expect(spy).toHaveBeenCalled()` asserts whether the function was executed.
+- `mockRestore()` resets the function after testing to prevent side effects.
+
+---
+
+## 📌 Conclusion
+
+This setup is useful for **unit testing** when you need to:
+✔ Spy on function calls.  
+✔ Verify interactions without modifying function behavior.  
+✔ Keep tests isolated with `mockRestore()`.
+
+---
+
+### 🏆 Done! You have successfully implemented and tested Jest spies. 🎉  
+

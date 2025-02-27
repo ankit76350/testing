@@ -1,28 +1,15 @@
-//index.test.js
-// before mocking this was falid
-
-// const { calculate } = require("./app");
-// const { add } = require("./mathUtils");
-
-// describe("calculate", () => {
-//   test('calls add function with parameter ', () => {
-//     calculate(1, 2, "add");
-//     expect(add).toHaveBeenCalled();  // fails
-//     expect(add).toHaveBeenCalled(1, 2); // fails
-//   }) 
-// })
+// index.test.js
+// spy
 
 
-// now i have created __mocking__ folder and inside __mocking__ ai have crated mathUtils folder.
+const myModule =  require("./spy")
 
-jest.mock("./mathUtils")
-const { calculate } = require("./app");
-const { add } = require("./mathUtils");
+test("Should spy on function add check if it is called", ()=>{
+  const spy  = jest.spyOn(myModule , "myFunction");
 
-describe("calculate", () => {
-  test('calls add function with parameter ', () => {
-    calculate(1, 2, "add");
-    expect(add).toHaveBeenCalled();  // pass
-    expect(add).toHaveBeenCalledWith(1, 2); // pass
-  }) 
+  myModule.myFunction();
+
+  expect(spy).toHaveBeenCalled();
+
+  spy.mockRestore()
 })
