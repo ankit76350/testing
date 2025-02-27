@@ -1,135 +1,147 @@
+# Project: Jest Setup and Teardown Example
 
-```md
-# 🕵️‍♂️ Jest Spy - Testing Function Calls
+## Overview
+This project demonstrates the use of Jest's setup and teardown methods (`beforeAll`, `afterAll`, `beforeEach`, `afterEach`) in unit testing. The primary goal is to ensure that test cases execute in an isolated environment by properly initializing and cleaning up resources before and after tests.
 
-This repository demonstrates how to use `jest.spyOn()` to track function calls in JavaScript. It ensures that a specific function is called within a module using Jest.
+The project consists of the following files:
 
----
-
-## 📂 Project Structure
-
-```
-/project-root
-│── spy.js            # Module containing the function to be tested
-│── index.test.js     # Jest test file for spying on function calls
-│── package.json      # Dependencies & scripts (Jest setup)
-```
+- **arrayUtils.js**: Contains utility functions for array operations.
+- **index.test.js**: Contains Jest test cases with setup and teardown functions.
 
 ---
 
-## 🚀 Getting Started
+## File Explanations
 
-### 📌 1. Install Jest
+### 1. `arrayUtils.js`
+This file defines three functions to manipulate arrays: adding, removing, and checking for an element.
 
-If you haven't installed Jest yet, run:
+```js
+const addToArray = (array, item) => {
+    array.push(item);
+    return array;
+};
 
-```sh
-npm install --save-dev jest
+const removeFromArray = (array, item) => {
+    const index = array.indexOf(item);
+    if (index !== -1) {
+        array.splice(index, 1);
+    }
+    return array;
+};
+
+const arrayContains = (array, item) => {
+    return array.includes(item);
+};
+
+module.exports = { addToArray, removeFromArray, arrayContains };
 ```
+
+- `addToArray(array, item)`: Adds `item` to `array` and returns the updated array.
+- `removeFromArray(array, item)`: Removes `item` from `array` if it exists and returns the updated array.
+- `arrayContains(array, item)`: Returns `true` if `item` exists in `array`, otherwise `false`.
 
 ---
 
-## 📂 File Explanations
+### 2. `index.test.js`
+This file contains test cases using Jest's setup and teardown functions.
 
-### 1️⃣ **spy.js** (Module to be tested)
+```js
+const { addToArray } = require("./arrayUtils");
 
-This file defines a simple function `myFunction` that prints `"Org fn"` to the console.
+let testArray;
 
-```javascript
-// spy.js
-function myFunction() {
-    console.log("Org fn");  // Original function that we will spy on
-}
+// Global setup and teardown (without describe)
+beforeAll(() => {
+    console.log("Before all test: initialize array");
+    testArray = [];
+});
 
-module.exports = { myFunction };
-```
+afterAll(() => {
+    console.log("After all test: clear");
+    testArray = null;
+});
 
-- The function `myFunction`:
-  - Logs `"Org fn"` to the console when called.
-  - Does **not** return any value.
-  - Will be spied on in the test to check if it's called.
+beforeEach(() => {
+    console.log("Before each test: clear array");
+    testArray = [];
+});
 
----
+afterEach(() => {
+    console.log("After each test: clear");
+    console.log(testArray);
+});
 
-### 2️⃣ **index.test.js** (Jest Test File)
+// Test without describe block
+test('add item to array', () => {
+    addToArray(testArray, "ritik");
+    expect(testArray).toContain("ritik");
+});
 
-This file contains the **Jest test case** to spy on the function call.
+// Test with describe block
+describe("SetUp and Teardown - 1", () => {
+    beforeAll(() => {
+        console.log("Before all test: initialize array");
+        testArray = [];
+    });
+    
+    afterAll(() => {
+        console.log("After all test: clear");
+        testArray = null;
+    });
+    
+    beforeEach(() => {
+        console.log("Before each test: clear array");
+        testArray = [];
+    });
+    
+    afterEach(() => {
+        console.log("After each test: clear");
+        console.log(testArray);
+    });
+    
+    test('add item to array - 1', () => {
+        addToArray(testArray, "ritik");
+        expect(testArray).toContain("ritik");
+    });
+});
 
-```javascript
-// index.test.js
-const myModule = require("./spy");  // Import the module
-
-test("Should spy on function and check if it is called", () => {
-  const spy = jest.spyOn(myModule, "myFunction"); // Create a spy on myFunction
-
-  myModule.myFunction();  // Call the function
-
-  expect(spy).toHaveBeenCalled();  // Verify if the function was called
-
-  spy.mockRestore();  // Restore original function implementation
+// Another describe block without setup and teardown
+describe("SetUp and Teardown - 2", () => {
+    test('add item to array - 2', () => {
+        addToArray(testArray, "ritik");
+        expect(testArray).toContain("ritik");
+    });
 });
 ```
 
-#### 🔍 **How the test works:**
-1. **`jest.spyOn(myModule, "myFunction")`**  
-   - Creates a spy on `myFunction` from `myModule`.
-   - Tracks if `myFunction` gets called.
+### Explanation of Jest Setup and Teardown Functions:
 
-2. **`myModule.myFunction();`**  
-   - Calls the actual function.
+- **`beforeAll()`**: Runs once before all test cases in the file.
+- **`afterAll()`**: Runs once after all test cases in the file.
+- **`beforeEach()`**: Runs before each test case, resetting the `testArray`.
+- **`afterEach()`**: Runs after each test case, logging the `testArray` state.
 
-3. **`expect(spy).toHaveBeenCalled();`**  
-   - Verifies if `myFunction` was called at least once.
-
-4. **`spy.mockRestore();`**  
-   - Restores the original function, ensuring the spy does not affect other tests.
+### Key Observations:
+1. The first test (without `describe`) uses global setup/teardown.
+2. The `SetUp and Teardown - 1` describe block has its own setup/teardown that runs only for tests within that block.
+3. The `SetUp and Teardown - 2` describe block does not have setup/teardown, so it does not get isolated.
 
 ---
 
-## ▶️ Running the Test
-
-Run Jest with:
-
-```sh
-npx jest
-```
-or
+## Running the Tests
+To execute the test cases, run the following command:
 
 ```sh
 npm test
 ```
 
----
-
-## 🛠 Expected Output
-
-If everything is working correctly, the test will pass:
+or
 
 ```sh
-PASS  ./index.test.js
-✓ Should spy on function and check if it is called (Xms)
+jest
 ```
 
-If the function was **not called**, Jest will throw an error.
-
 ---
 
-## 🎯 Key Takeaways
-
-- `jest.spyOn()` allows us to track if a function is being called.
-- `expect(spy).toHaveBeenCalled()` asserts whether the function was executed.
-- `mockRestore()` resets the function after testing to prevent side effects.
-
----
-
-## 📌 Conclusion
-
-This setup is useful for **unit testing** when you need to:
-✔ Spy on function calls.  
-✔ Verify interactions without modifying function behavior.  
-✔ Keep tests isolated with `mockRestore()`.
-
----
-
-### 🏆 Done! You have successfully implemented and tested Jest spies. 🎉  
-
+## Conclusion
+This project illustrates the importance of Jest's setup and teardown functions for ensuring test isolation. Using `beforeAll`, `afterAll`, `beforeEach`, and `afterEach`, we can properly initialize and clean up data to maintain predictable test results.
