@@ -1,125 +1,131 @@
-# fetchData Testing Documentation
+# Project: Jest Mocking Example
 
 ## Overview
-This project contains test cases for the `fetchData` function, which simulates fetching data asynchronously using Promises. The tests validate both resolved and rejected states using Jest.
+This project demonstrates how to use Jest for unit testing with function mocking. The main focus is testing the `calculate` function in `app.js` while mocking the `add` function from `mathUtils.js`. The project structure consists of the following files:
 
-## Files Structure
-- **`index.js`**: Contains the `fetchData` function that returns a Promise, resolving with a string (`"chocolate"`) or rejecting with an error (`"error occured"`).
-- **`index.test.js`**: Contains Jest test cases to verify the behavior of `fetchData` using Promises, async/await, and Jest assertions.
+- **mathUtils.js**: Contains basic arithmetic functions.
+- **app.js**: Implements the `calculate` function, which performs arithmetic operations.
+- **index.test.js**: Contains Jest test cases for the `calculate` function.
+- **__mocks__/mathUtils.js**: Provides a mocked version of the `add` function for testing.
 
 ---
 
-## `index.js` - Implementation of `fetchData`
-```javascript
-function fetchData(shouldFails = false) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (shouldFails) {
-        reject("error occured");
-      } else {
-        resolve("chocolate");
-      }
-    }, 100);
-  });
+## File Explanations
+
+### 1. `mathUtils.js`
+This file defines four mathematical operations: addition, subtraction, multiplication, and division.
+
+```js
+// Function to add two numbers
+function add(num1, num2) {
+    return num1 + num2;
 }
-module.exports = fetchData;
+
+// Function to multiply two numbers
+function multiply(num1, num2) {
+    return num1 * num2;
+}
+
+// Function to subtract two numbers
+function subtract(num1, num2) {
+    return num1 - num2;
+}
+
+// Function to divide two numbers
+function divide(num1, num2) {
+    return num2 !== 0 ? num1 / num2 : "Cannot divide by zero";
+}
+
+module.exports = { add, multiply, subtract, divide };
 ```
 
-### Explanation
-- **Function:** `fetchData(shouldFails = false)`
-  - This function simulates an asynchronous operation using JavaScript's built-in `Promise` object.
-  - It takes a boolean parameter `shouldFails` which determines if the Promise should resolve or reject.
-  - Default value for `shouldFails` is `false`, meaning the Promise resolves successfully unless specified otherwise.
-  - The function uses `setTimeout` to introduce a 100ms delay before resolving or rejecting the Promise.
-  
-- **Promise Behavior:**
-  - If `shouldFails` is `false`, the function calls `resolve("chocolate")`, meaning the Promise resolves successfully with the string `"chocolate"`.
-  - If `shouldFails` is `true`, the function calls `reject("error occured")`, meaning the Promise is rejected with the string `"error occured"`.
-  
-- **Export:** `module.exports = fetchData;`
-  - This allows the function to be imported in other files, particularly in the test file.
+### 2. `app.js`
+This file implements the `calculate` function, which takes two numbers and an operation type as input and performs the respective arithmetic operation.
 
----
+```js
+const { add, multiply, subtract, divide } = require("./mathUtils");
 
-## `index.test.js` - Jest Test Cases
-```javascript
-const fetchData = require(".");
+function calculate(num1, num2, operation) {
+    switch (operation) {
+        case "add":
+            return add(num1, num2);
+        case "multiply":
+            return multiply(num1, num2);
+        case "subtract":
+            return subtract(num1, num2);
+        case "divide":
+            return divide(num1, num2);
+        default:
+            return new Error("Invalid operation");
+    }
+}
 
-test("the data is choco using promises", () => {
-  return fetchData().then((data) => {
-    expect(data).toBe("chocolate");
-  });
+module.exports = { calculate };
+```
+
+### 3. `__mocks__/mathUtils.js`
+This file provides a mocked version of the `add` function using Jest.
+
+```js
+const add = jest.fn((a, b) => a + b);
+module.exports = { add };
+```
+
+- `jest.fn((a, b) => a + b)`: This creates a mock function that simulates the behavior of `add`, but allows Jest to track calls and arguments.
+
+### 4. `index.test.js`
+This file contains Jest test cases for the `calculate` function. Initially, the tests failed because the `add` function was not mocked. After creating the `__mocks__` folder and providing a mocked version of `add`, the tests pass successfully.
+
+#### Before Mocking (Tests Failed)
+```js
+const { calculate } = require("./app");
+const { add } = require("./mathUtils");
+
+describe("calculate", () => {
+    test('calls add function with parameter', () => {
+        calculate(1, 2, "add");
+        expect(add).toHaveBeenCalled();  // fails
+        expect(add).toHaveBeenCalledWith(1, 2); // fails
+    });
 });
+```
+- The test failed because Jest could not track calls to the original `add` function.
 
-test("the data is choco with .then", () => {
-  return fetchData().then((data) => {
-    expect(data).toBe("chocolate");
-  });
-});
+#### After Mocking (Tests Pass)
+```js
+jest.mock("./mathUtils");
+const { calculate } = require("./app");
+const { add } = require("./mathUtils");
 
-test("the data is choco with .catch", () => {
-  return fetchData(true).catch((data) => {
-    expect(data).toBe("error occured");
-  });
-});
-
-test("the data is choco using async/await", async () => {
-  const data = await fetchData();
-  expect(data).toBe("chocolate");
-});
-
-test("fetch fails", async () => {
-  expect.assertions(1);
-  try {
-    await fetchData(true);
-  } catch (error) {
-    expect(error).toBe("error occured");
-  }
-});
-
-test("ASYNC Test resolve", async () => {
-  await expect(fetchData()).resolves.toBe("chocolate");
-});
-
-test("ASYNC Test reject", async () => {
-  await expect(fetchData(true)).rejects.toMatch("error occured");
+describe("calculate", () => {
+    test('calls add function with parameter', () => {
+        calculate(1, 2, "add");
+        expect(add).toHaveBeenCalled();  // pass
+        expect(add).toHaveBeenCalledWith(1, 2); // pass
+    });
 });
 ```
 
-### Explanation of Test Cases
-1. **Testing using `.then()` (Promise-based approach)**
-   - The first two tests ensure that `fetchData()` resolves correctly to `"chocolate"` when no argument is passed.
-   - Uses `.then()` to handle the resolved value of the Promise.
-
-2. **Testing rejection using `.catch()`**
-   - Calls `fetchData(true)`, which triggers rejection.
-   - Uses `.catch()` to verify that the error message returned is `"error occured"`.
-
-3. **Testing using `async/await`**
-   - Uses `async/await` instead of `.then()`.
-   - Ensures `fetchData()` resolves to `"chocolate"`.
-   
-4. **Testing rejection with `async/await`**
-   - Uses `try/catch` to catch errors.
-   - `expect.assertions(1);` ensures Jest verifies at least one assertion inside the `catch` block.
-
-5. **Using Jest's `.resolves` matcher**
-   - `await expect(fetchData()).resolves.toBe("chocolate")` verifies that `fetchData()` resolves successfully.
-
-6. **Using Jest's `.rejects` matcher**
-   - `await expect(fetchData(true)).rejects.toMatch("error occured")` verifies that `fetchData(true)` rejects as expected.
+- `jest.mock("./mathUtils")`: This tells Jest to use the mocked version of `mathUtils.js` from the `__mocks__` folder.
+- `expect(add).toHaveBeenCalled()`: Verifies that `add` was called.
+- `expect(add).toHaveBeenCalledWith(1, 2)`: Ensures `add` was called with the correct arguments.
 
 ---
 
 ## Running the Tests
-To run the test suite, install Jest (if not already installed):
-```sh
-npm install --save-dev jest
-```
-Then, execute the tests using:
+To execute the test cases, run the following command:
+
 ```sh
 npm test
 ```
 
+or
+
+```sh
+jest
+```
+
+---
+
 ## Conclusion
-This project demonstrates how to test asynchronous functions using Jest. It covers different approaches like `.then()`, `.catch()`, `async/await`, and Jest matchers for handling resolved and rejected Promises effectively. This ensures robust testing of asynchronous JavaScript functions.
+This project demonstrates how Jest can be used to test function calls using mocks. By creating a `__mocks__` folder and using `jest.mock()`, we were able to successfully track function calls and validate expected behaviors.

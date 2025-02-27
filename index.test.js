@@ -1,3 +1,4 @@
+//index.test.js
 // before mocking this was falid
 
 // const { calculate } = require("./app");
@@ -12,7 +13,7 @@
 // })
 
 
-// now i have created __mocking__ folder and inside __mocking__ i have crated mathUtils folder.
+// now i have created __mocking__ folder and inside __mocking__ ai have crated mathUtils folder.
 
 jest.mock("./mathUtils")
 const { calculate } = require("./app");
