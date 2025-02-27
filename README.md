@@ -1,82 +1,125 @@
-# Jest Test Cases
+# fetchData Testing Documentation
 
-This file contains Jest test cases that demonstrate error handling and function mocking using Jest.
+## Overview
+This project contains test cases for the `fetchData` function, which simulates fetching data asynchronously using Promises. The tests validate both resolved and rejected states using Jest.
 
-## Table of Contents
-- [Exceptional Error Handling Test](#exceptional-error-handling-test)
-- [Mock Function Test](#mock-function-test)
-
-## Exceptional Error Handling Test
-
-```javascript
- test("Exceptional Error",()=>{
-  function openInvalidFile(){
-    throw new Error("file not found");
-  }
-
-  expect(()=>openInvalidFile()).toThrow(); // Checks if the function throws an error
-  expect(()=>openInvalidFile()).toThrow(Error); // Checks if the thrown error is an instance of `Error`
-  expect(()=>openInvalidFile()).toThrow("file not found"); // Checks if the error message matches exactly
-  expect(()=>openInvalidFile()).toThrow(/not found/); // Uses regex to check if the error message contains "not found"
-
-  // Uncommenting these lines would fail because the function does throw an error
-  // expect(()=>openInvalidFile()).not.toThrow();
-  // expect(()=>openInvalidFile()).not.toThrow(Error);
-  // expect(()=>openInvalidFile()).not.toThrow("file not found");
-  // expect(()=>openInvalidFile()).not.toThrow(/not found/);
- })
-```
-
-### Explanation:
-- The `openInvalidFile` function throws an error with the message "file not found".
-- The Jest `expect().toThrow()` method ensures that an error is indeed thrown.
-- Different variations of `toThrow()` are used:
-  - Checking if any error is thrown.
-  - Checking if an `Error` type is thrown.
-  - Checking for an exact error message.
-  - Using regex to match error messages dynamically.
-
-## Mock Function Test
-
-```javascript
- test("Drinks return",()=>{
-    const drink = jest.fn(()=>true); // Mock function returning true
-    // const drink = jest.fn(()=>false); // Alternative: returning false
-    // const drink = jest.fn(()=>{}); // Alternative: returning an empty object
-    
-    drink();
-    
-    expect(drink).toHaveReturned(); // Checks if the function has returned any value
-    expect(drink).toHaveReturnedWith(true); // Checks if the function specifically returned true
-    expect(drink).toHaveReturnedWith(false); // This will fail unless the function returns false
-    expect(drink).toHaveReturnedWith({}); // This will fail unless the function returns an empty object
- })
-```
-
-### Explanation:
-- `jest.fn()` is used to create a mock function.
-- The mock function can return different values based on setup (true, false, empty object, etc.).
-- `drink()` is called to execute the function.
-- Various Jest matchers are used to verify function return values:
-  - `.toHaveReturned()`: Checks if the function returned anything.
-  - `.toHaveReturnedWith(value)`: Checks if the function returned a specific value.
-
-## Jest Global Keywords
-Jest provides global methods for writing test cases without requiring explicit imports in every file. 
-Some important global keywords used in this file:
-- `expect()`: Assertion method to check test conditions.
-- `jest.fn()`: Creates mock functions for testing.
-- `.toThrow()`: Checks if a function throws an error.
-- `.toHaveReturned()`: Checks if a function returned any value.
+## Files Structure
+- **`index.js`**: Contains the `fetchData` function that returns a Promise, resolving with a string (`"chocolate"`) or rejecting with an error (`"error occured"`).
+- **`index.test.js`**: Contains Jest test cases to verify the behavior of `fetchData` using Promises, async/await, and Jest assertions.
 
 ---
-### What is Mocking?
-Mocking is a technique used in testing where a function's actual implementation is replaced with a simulated version. This helps isolate functions and test behavior without executing the real code.
 
-Example:
+## `index.js` - Implementation of `fetchData`
 ```javascript
-const sum = (a, b) => a + b;
-expect(sum(2,2)).toBe(4); // This is a real function test (not a mock)
+function fetchData(shouldFails = false) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (shouldFails) {
+        reject("error occured");
+      } else {
+        resolve("chocolate");
+      }
+    }, 100);
+  });
+}
+module.exports = fetchData;
 ```
 
-In contrast, `jest.fn()` is used to create a mock function that mimics behavior without actual implementation.
+### Explanation
+- **Function:** `fetchData(shouldFails = false)`
+  - This function simulates an asynchronous operation using JavaScript's built-in `Promise` object.
+  - It takes a boolean parameter `shouldFails` which determines if the Promise should resolve or reject.
+  - Default value for `shouldFails` is `false`, meaning the Promise resolves successfully unless specified otherwise.
+  - The function uses `setTimeout` to introduce a 100ms delay before resolving or rejecting the Promise.
+  
+- **Promise Behavior:**
+  - If `shouldFails` is `false`, the function calls `resolve("chocolate")`, meaning the Promise resolves successfully with the string `"chocolate"`.
+  - If `shouldFails` is `true`, the function calls `reject("error occured")`, meaning the Promise is rejected with the string `"error occured"`.
+  
+- **Export:** `module.exports = fetchData;`
+  - This allows the function to be imported in other files, particularly in the test file.
+
+---
+
+## `index.test.js` - Jest Test Cases
+```javascript
+const fetchData = require(".");
+
+test("the data is choco using promises", () => {
+  return fetchData().then((data) => {
+    expect(data).toBe("chocolate");
+  });
+});
+
+test("the data is choco with .then", () => {
+  return fetchData().then((data) => {
+    expect(data).toBe("chocolate");
+  });
+});
+
+test("the data is choco with .catch", () => {
+  return fetchData(true).catch((data) => {
+    expect(data).toBe("error occured");
+  });
+});
+
+test("the data is choco using async/await", async () => {
+  const data = await fetchData();
+  expect(data).toBe("chocolate");
+});
+
+test("fetch fails", async () => {
+  expect.assertions(1);
+  try {
+    await fetchData(true);
+  } catch (error) {
+    expect(error).toBe("error occured");
+  }
+});
+
+test("ASYNC Test resolve", async () => {
+  await expect(fetchData()).resolves.toBe("chocolate");
+});
+
+test("ASYNC Test reject", async () => {
+  await expect(fetchData(true)).rejects.toMatch("error occured");
+});
+```
+
+### Explanation of Test Cases
+1. **Testing using `.then()` (Promise-based approach)**
+   - The first two tests ensure that `fetchData()` resolves correctly to `"chocolate"` when no argument is passed.
+   - Uses `.then()` to handle the resolved value of the Promise.
+
+2. **Testing rejection using `.catch()`**
+   - Calls `fetchData(true)`, which triggers rejection.
+   - Uses `.catch()` to verify that the error message returned is `"error occured"`.
+
+3. **Testing using `async/await`**
+   - Uses `async/await` instead of `.then()`.
+   - Ensures `fetchData()` resolves to `"chocolate"`.
+   
+4. **Testing rejection with `async/await`**
+   - Uses `try/catch` to catch errors.
+   - `expect.assertions(1);` ensures Jest verifies at least one assertion inside the `catch` block.
+
+5. **Using Jest's `.resolves` matcher**
+   - `await expect(fetchData()).resolves.toBe("chocolate")` verifies that `fetchData()` resolves successfully.
+
+6. **Using Jest's `.rejects` matcher**
+   - `await expect(fetchData(true)).rejects.toMatch("error occured")` verifies that `fetchData(true)` rejects as expected.
+
+---
+
+## Running the Tests
+To run the test suite, install Jest (if not already installed):
+```sh
+npm install --save-dev jest
+```
+Then, execute the tests using:
+```sh
+npm test
+```
+
+## Conclusion
+This project demonstrates how to test asynchronous functions using Jest. It covers different approaches like `.then()`, `.catch()`, `async/await`, and Jest matchers for handling resolved and rejected Promises effectively. This ensures robust testing of asynchronous JavaScript functions.
