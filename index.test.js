@@ -1,32 +1,40 @@
+const fetchData = require(".")
 
-test("Exceptional Error",()=>{
-  function openInvalidFile(){
-    throw new Error("file not found");
-  }
-
-  expect(()=>openInvalidFile()).toThrow()
-  expect(()=>openInvalidFile()).toThrow(Error)
-  expect(()=>openInvalidFile()).toThrow("file not found")
-  expect(()=>openInvalidFile()).toThrow(/not found/) // regex
-
-//   expect(()=>openInvalidFile()).not.toThrow()
-//   expect(()=>openInvalidFile()).not.toThrow(Error)
-//   expect(()=>openInvalidFile()).not.toThrow("file not found")
-//   expect(()=>openInvalidFile()).not.toThrow(/not found/) // regex
+test("tha data is choco using promises",()=>{
+  return fetchData().then((data) => {
+    expect(data).toBe('chocolate');
+  })
 })
 
+test("tha data is choco with .then",()=>{
+  return fetchData().then((data) => {
+    expect(data).toBe('chocolate');
+  })
+})
+test("tha data is choco with .catch",()=>{
+  return fetchData(true).catch((data) => {
+    expect(data).toBe("error occured")
+  })
+})
 
-//here jest global keyword which is come from the jest
-//what does mocking? (2+2==4 true)
+test("tha data is choco using asyn await", async()=>{
+  const data = await fetchData();
+  expect(data).toBe('chocolate')
+})
 
+test("fetch fails", async()=>{
+  expect.assertions(1);
+  try {
+    await fetchData(true);
+  } catch (error) {
+    expect(error).toBe('error occured')
+  }
+})
 
-test("Drinks return",()=>{
-    const drink = jest.fn(()=>true)
-    // const drink = jest.fn(()=>false)
-    // const drink = jest.fn(()=>{})
-    drink();
-    expect(drink).toHaveReturned()
-    expect(drink).toHaveReturnedWith(true)
-    expect(drink).toHaveReturnedWith(false)
-    expect(drink).toHaveReturnedWith({})
+test("ASYNC Test resolve", async()=>{
+    await expect(fetchData()).resolves.toBe("chocolate")
+})
+
+test("ASYNC Test reject", async()=>{
+    await expect(fetchData(true)).rejects.toMatch("error occured")
 })
