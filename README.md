@@ -3,7 +3,7 @@
 This repository contains a simple test case for verifying the correctness of a multiplication function using Jest.
 
 
-## 🛠️ Official docs :
+## 🛠️ Official docs of Jest :
 https://jestjs.io/docs/getting-started
  
 ## 🛠️ Setup Instructions
